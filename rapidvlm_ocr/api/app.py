@@ -46,6 +46,46 @@ class RapidVLMOCR:
     def __call__(
         self,
         task_type: TaskType,
+        image_path: str | Path | list[str | Path],
+        output_format: OutputFormat | None = None,
+        generation_config: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
+        batch_size: int = 4,
+    ):
+        if isinstance(image_path, list):
+            if isinstance(metadata, dict) or metadata is None:
+                metadata = [dict(metadata or {}) for _ in image_path]
+
+            return self.run_batch(
+                task_type=task_type,
+                image_paths=image_path,
+                output_format=output_format,
+                generation_config=generation_config,
+                metadata_list=metadata,
+                batch_size=batch_size,
+            )
+
+        elif isinstance(image_path, (str, Path)):
+            if metadata is not None and not isinstance(metadata, dict):
+                raise ValueError(
+                    "metadata must be a single dict when image_path is a single item"
+                )
+
+            return self.run(
+                task_type=task_type,
+                image_path=image_path,
+                output_format=output_format,
+                generation_config=generation_config,
+                metadata=metadata,
+            )
+
+        raise ValueError(
+            "image_path and metadata must both be either single items or lists"
+        )
+
+    def run(
+        self,
+        task_type: TaskType,
         image_path: str | Path | None = None,
         output_format: OutputFormat | None = None,
         generation_config: dict[str, Any] | None = None,
@@ -55,12 +95,51 @@ class RapidVLMOCR:
             task_type=task_type,
             model_name=self.model_name,
             prompt="",
-            image=str(image_path) if image_path is not None else "",
+            image=str(Path(image_path).resolve()) if image_path is not None else "",
             output_format=output_format or self._default_output_format(task_type),
             generation_config=self._merge_generation_config(generation_config),
             metadata=metadata or {},
         )
         return self.pipeline.run(request)
+
+    def run_batch(
+        self,
+        task_type: TaskType,
+        image_paths: list[str | Path],
+        output_format: OutputFormat | None = None,
+        generation_config: dict[str, Any] | None = None,
+        metadata_list: list[dict[str, Any]] | None = None,
+        batch_size: int = 4,
+    ) -> list[InferenceResponse]:
+        if not image_paths:
+            return []
+
+        if batch_size <= 0:
+            raise ValueError("batch_size must be a positive integer")
+
+        if metadata_list is not None and len(metadata_list) != len(image_paths):
+            raise ValueError("Length of metadata_list must match length of image_paths")
+
+        requests = []
+        for idx, image_path in enumerate(image_paths):
+            metadata = metadata_list[idx] if metadata_list else {}
+            request = InferenceRequest(
+                task_type=task_type,
+                model_name=self.model_name,
+                prompt="",
+                image=str(Path(image_path).resolve()),
+                output_format=output_format or self._default_output_format(task_type),
+                generation_config=self._merge_generation_config(generation_config),
+                metadata=metadata,
+            )
+            requests.append(request)
+
+        responses = []
+        for i in range(0, len(requests), batch_size):
+            batch_requests = requests[i : i + batch_size]
+            batch_responses = self.pipeline.run_batch(batch_requests)
+            responses.extend(batch_responses)
+        return responses
 
     def _merge_generation_config(self, generation_config: dict[str, Any] | None):
         merged = dict(self.default_generation_config)

@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 # @Author: SWHL
 # @Contact: liekkaskono@163.com
+from __future__ import annotations
+
 import json
 
 from ..schema.enums import EngineType, TaskType
@@ -23,16 +25,22 @@ class MockEngine(BaseEngine):
 
     def generate(self, request: InferenceRequest) -> str:
         if request.task_type == TaskType.OCR:
-            return f"[MOCK OCR]"
+            return "mock ocr text"
 
         if request.task_type == TaskType.DOCUMENT_PARSE:
-            return f"[MOCK DOCUMENT_PARSE]"
+            return "# Mock Document\n\nThis is a mock markdown output."
 
         if request.task_type == TaskType.KIE:
-            schema = request.extras.get("schema") or ["field_1", "field_2"]
             return json.dumps(
-                {field: f"mock_{idx}" for idx, field in enumerate(schema, 1)},
+                {
+                    "engine": "mock",
+                    "task": request.task_type.value,
+                    "fields": {},
+                },
                 ensure_ascii=False,
             )
 
         return ""
+
+    def generate_batch(self, requests: list[InferenceRequest]) -> list[str]:
+        return [self.generate(request) for request in requests]
