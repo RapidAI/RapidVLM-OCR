@@ -1,0 +1,13 @@
+default:
+  temperature: 0.2
+  max_tokens: 2048
+  stop:
+    - "<|endoftext|>"
+    - "###"
+
+qianfan_ocr:
+  temperature: 0.2
+  max_tokens: 2048
+  stop:
+    - "<|endoftext|>"
+    - "###"

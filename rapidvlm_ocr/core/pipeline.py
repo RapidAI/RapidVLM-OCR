@@ -7,12 +7,9 @@ import time
 
 from ..preprocess.image import load_image
 from ..preprocess.prompt import PromptBuilder
-from ..schema.enums import TaskType
 from ..schema.request import InferenceRequest
 from ..schema.response import InferenceResponse
-from ..tasks.document_parse import DocumentParseTask
-from ..tasks.kie import KIETask
-from ..tasks.ocr import OCRTask
+from ..tasks.registry import get_task_handler
 from ..utils.logger import logger
 
 
@@ -20,18 +17,15 @@ class Pipeline:
     def __init__(self, engine):
         self.engine = engine
         self.prompt_builder = PromptBuilder()
-        self.tasks = {
-            TaskType.OCR: OCRTask(),
-            TaskType.DOCUMENT_PARSE: DocumentParseTask(),
-            TaskType.KIE: KIETask(),
-        }
 
     def run(self, request: InferenceRequest) -> InferenceResponse:
         s0 = time.perf_counter()
 
         runtime_request, image_path = self.prepare_runtime_request(request)
         raw_output = self.engine.generate(runtime_request)
-        parsed_output = self.tasks[request.task_type].postprocess(raw_output)
+
+        task_handler = get_task_handler(request.task_type)
+        parsed_output = task_handler.postprocess(raw_output)
 
         elapse = time.perf_counter() - s0
         return InferenceResponse(
@@ -75,7 +69,8 @@ class Pipeline:
         for request, raw_output, prompt, image_path in zip(
             requests, raw_outputs, prompts, image_paths
         ):
-            parsed_output = self.tasks[request.task_type].postprocess(raw_output)
+            task_handler = get_task_handler(request.task_type)
+            parsed_output = task_handler.postprocess(raw_output)
             response = InferenceResponse(
                 task_type=request.task_type,
                 model_name=request.model_name,

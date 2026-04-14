@@ -5,9 +5,12 @@ from enum import Enum
 
 
 class TaskType(str, Enum):
-    OCR = "ocr"
-    DOCUMENT_PARSE = "document_parse"
-    KIE = "kie"
+    TEXT_EXTRACTION = "text_extraction"
+    FORMULA_PARSING = "formula_parsing"
+    TABLE_PARSING = "table_parsing"
+    DOCUMENT_PARSING = "document_parsing"
+    MULTI_SCENE_REC = "multilingual_scene_text_recognition"
+    KIE = "key_information_extraction"
 
 
 class ModelName(str, Enum):

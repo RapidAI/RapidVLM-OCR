@@ -1,0 +1,28 @@
+qianfan_ocr:
+  prompt_template: "<|im_start|>user\n<image>\n{}<|im_end|>\n<|im_start|>assistant\n"
+
+  tasks:
+    text_extraction:
+      label: Text Extraction
+      prompt: Please extract the text from the image.
+      output_format: text
+    formula_parsing:
+      label: Formula Parsing
+      prompt: Please convert the formula in the image to LaTeX.
+      output_format: text
+    table_parsing:
+      label: Table Parsing
+      prompt: Please convert the table in the image to HTML.
+      output_format: html
+    document_parsing:
+      label: Document Parsing
+      prompt: Parse this document to Markdown.
+      output_format: markdown
+    multilingual_scene_text_recognition:
+      label: Multilingual Scene Text Recognition
+      prompt: Please output the text content from the image.
+      output_format: text
+    key_information_extraction:
+      label: Key Information Extraction
+      prompt: Please extract key information from the image and output JSON.
+      output_format: json
