@@ -8,6 +8,7 @@ from enum import Enum
 from pathlib import Path
 
 import pytest
+import requests
 
 root_dir = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(root_dir))
@@ -90,4 +91,35 @@ def test_batch_mixed_model_names():
     with pytest.raises(
         ValueError, match="All requests in a batch must have the same model name."
     ):
+        pipeline.run_batch(requests)
+
+
+def test_run_batch_raises_when_engine_output_count_mismatches_requests():
+    class FakeEngine:
+        def generate(self, request: InferenceRequest):
+            return "unused"
+
+        def generate_batch(self, requests: list[InferenceRequest]):
+            return ["output1"]
+
+    pipeline = Pipeline(engine=FakeEngine())
+
+    requests = [
+        InferenceRequest(
+            task_type=TaskType.DOCUMENT_PARSING,
+            model_name=ModelName.QIANFAN_OCR,
+            output_format=OutputFormat.TEXT,
+            prompt="",
+            image="tests/test_files/QianFan_OCR/document.png",
+        ),
+        InferenceRequest(
+            task_type=TaskType.DOCUMENT_PARSING,
+            model_name=ModelName.QIANFAN_OCR,
+            output_format=OutputFormat.TEXT,
+            prompt="",
+            image="tests/test_files/QianFan_OCR/general.jpg",
+        ),
+    ]
+
+    with pytest.raises(RuntimeError, match="Engine returned 1 outputs for 2 requests"):
         pipeline.run_batch(requests)

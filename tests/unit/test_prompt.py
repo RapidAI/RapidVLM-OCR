@@ -57,3 +57,16 @@ def test_prompt_builder_raises_error_for_missing_task() -> None:
             prompt=None,
             model_name=ModelName.QIANFAN_OCR,
         )
+
+
+def test_custom_prompt_is_used_when_provided() -> None:
+    builder = PromptBuilder()
+
+    custom_prompt = "This is a custom prompt."
+    prompt = builder.build(
+        task_type=TaskType.DOCUMENT_PARSING,
+        prompt=custom_prompt,
+        model_name=ModelName.QIANFAN_OCR,
+    )
+
+    assert prompt == custom_prompt
