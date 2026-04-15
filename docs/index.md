@@ -1,0 +1,30 @@
+---
+comments: true
+hide:
+  - navigation
+  - toc
+---
+
+<div align="center">
+  <h1><b>RapidVLM-OCR</b></h1>
+  <b><font size="4"><i> 基于 vLLM 加速的端到端 VLM-OCR 统一推理框架 </i></font></b>
+  <div>&nbsp;</div>
+
+<a href=""><img src="https://img.shields.io/badge/Python->=3.10,<4-aff.svg"></a>
+<a href=""><img src="https://img.shields.io/badge/OS-Linux%2C%20Win%2C%20Mac-pink.svg"></a>
+<a href="https://semver.org/"><img alt="SemVer2.0" src="https://img.shields.io/badge/SemVer-2.0-brightgreen"></a>
+<a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+
+</div>
+
+## 📝 简介
+
+RpaidVLM-OCR：基于 vLLM 加速的端到端 VLM-OCR 统一推理框架，多模型兼容、一套接口、开箱即用。
+
+项目定位：只集成端到端 OCR 领域大模型，力争在效果和模型大小之间找到一个平衡。
+
+与现有项目区别：
+
+- [RapidOCR](https://github.com/RapidAI/RapidOCRDocs): 仅集成单纯从图像中提取文字功能，目前仅包括两阶段传统方案。
+- [RapidDoc](https://github.com/RapidAI/RapidDoc): 基于 MinerU，两阶段方案，集成多个小模型来做文档解析任务。
+- RapidVLM-OCR: 专注端到端 VLM-OCR，解决综合性任务。

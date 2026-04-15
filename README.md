@@ -3,7 +3,7 @@
   <b><font size="4"><i> 基于 vLLM 加速的端到端 VLM-OCR 统一推理框架 </i></font></b>
   <div>&nbsp;</div>
 
-<a href=""><img src="https://img.shields.io/badge/Python->=3.6-aff.svg"></a>
+<a href=""><img src="https://img.shields.io/badge/Python->=3.10,<4-aff.svg"></a>
 <a href=""><img src="https://img.shields.io/badge/OS-Linux%2C%20Win%2C%20Mac-pink.svg"></a>
 <a href="https://semver.org/"><img alt="SemVer2.0" src="https://img.shields.io/badge/SemVer-2.0-brightgreen"></a>
 <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
@@ -49,8 +49,21 @@ RpaidVLM-OCR：基于 vLLM 加速的端到端 VLM-OCR 统一推理框架，多�
 
 2. 安装 `rapidvlm_ocr`
 
-    ```python
+    ```bash
     pip install rapidvlm_ocr
+    ```
+
+3. 快速检查安装是否成功
+
+    ```bash
+    rapidvlm_ocr check
+    ```
+
+    预期输出类似：
+
+    ```text
+    rapidvlm_ocr check passed
+    app: RapidVLMOCR
     ```
 
 ## 下载模型
