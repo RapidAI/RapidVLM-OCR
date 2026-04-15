@@ -30,6 +30,8 @@ huggingface-cli download --resume-download baidu/Qianfan-OCR --local-dir Qianfan
 
 ## 使用
 
+### 图像批处理
+
 ```python
 from rapidvlm_ocr import EngineType, ModelName, RapidVLMOCR, TaskType
 
@@ -40,12 +42,39 @@ app = RapidVLMOCR(
     engine=EngineType.VLLM,
 )
 
-img_paths = [
+input_paths = [
     "tests/test_files/QianFan_OCR/general_1.jpeg",
     "tests/test_files/QianFan_OCR/general.jpg",
     "tests/test_files/QianFan_OCR/document.png",
 ]
-result = app(task_type=TaskType.DOCUMENT_PARSING, image_path=img_paths, batch_size=2)
+result = app(task_type=TaskType.DOCUMENT_PARSING, input_path=input_paths, batch_size=2)
 
 print(result)
 ```
+
+### PDF 输入
+
+```python
+from rapidvlm_ocr import EngineType, ModelName, RapidVLMOCR, TaskType
+
+model_path = "models/Qianfan-OCR"
+app = RapidVLMOCR(
+    model_name=ModelName.QIANFAN_OCR,
+    model_path=model_path,
+    engine=EngineType.VLLM,
+)
+
+result = app(
+    task_type=TaskType.DOCUMENT_PARSING,
+    input_path="tests/test_files/test.pdf",
+    batch_size=4,
+)
+
+print(result)
+```
+
+说明：
+
+- 公开接口参数已统一为 `input_path` / `input_paths`。
+- `app(input_path="xxx.pdf")` 会使用 `pypdfium2` 将 PDF 按页渲染为图像，并默认走批处理。
+- `run()` 只用于单个图像输入；PDF 请使用 `app(...)` 或 `run_batch(...)`。

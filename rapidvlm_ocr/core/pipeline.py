@@ -21,7 +21,7 @@ class Pipeline:
     def run(self, request: InferenceRequest) -> InferenceResponse:
         s0 = time.perf_counter()
 
-        runtime_request, image_path = self.prepare_runtime_request(request)
+        runtime_request, input_path = self.prepare_runtime_request(request)
         raw_output = self.engine.generate(runtime_request)
 
         task_handler = get_task_handler(request.task_type)
@@ -35,7 +35,7 @@ class Pipeline:
             parsed_output=parsed_output,
             metadata={
                 "prompt": runtime_request.prompt,
-                "image_path": image_path,
+                "input_path": input_path,
                 **request.metadata,
             },
             elapse=elapse,
@@ -51,13 +51,13 @@ class Pipeline:
 
         runtime_requests = []
         prompts = []
-        image_paths = []
+        input_paths = []
 
         for request in requests:
-            runtime_request, image_path = self.prepare_runtime_request(request)
+            runtime_request, input_path = self.prepare_runtime_request(request)
             runtime_requests.append(runtime_request)
             prompts.append(runtime_request.prompt)
-            image_paths.append(image_path)
+            input_paths.append(input_path)
 
         raw_outputs = self.engine.generate_batch(runtime_requests)
         if len(raw_outputs) != len(requests):
@@ -66,8 +66,8 @@ class Pipeline:
             )
 
         responses = []
-        for request, raw_output, prompt, image_path in zip(
-            requests, raw_outputs, prompts, image_paths
+        for request, raw_output, prompt, input_path in zip(
+            requests, raw_outputs, prompts, input_paths
         ):
             task_handler = get_task_handler(request.task_type)
             parsed_output = task_handler.postprocess(raw_output)
@@ -78,7 +78,7 @@ class Pipeline:
                 parsed_output=parsed_output,
                 metadata={
                     "prompt": prompt,
-                    "image_path": image_path,
+                    "input_path": input_path,
                     **request.metadata,
                 },
                 elapse=0.0,
@@ -100,7 +100,7 @@ class Pipeline:
         )
         logger.info(f"Built prompt for task {request.task_type}: {prompt}")
 
-        image_path = request.image if isinstance(request.image, str) else None
+        input_path = request.image if isinstance(request.image, str) else None
         image = (
             load_image(request.image)
             if isinstance(request.image, str)
@@ -115,7 +115,7 @@ class Pipeline:
             generation_config=request.generation_config,
             metadata=request.metadata,
         )
-        return runtime_request, image_path
+        return runtime_request, input_path
 
     def validate_batch_requests(self, requests: list[InferenceRequest]) -> None:
         task_types = {request.task_type for request in requests}

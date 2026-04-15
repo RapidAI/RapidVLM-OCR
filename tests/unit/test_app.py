@@ -27,7 +27,7 @@ def test_call_dispatches_to_run_for_single_image(monkeypatch: pytest.MonkeyPatch
 
     result = app(
         task_type=TaskType.DOCUMENT_PARSING,
-        image_path="tests/test_files/QianFan_OCR/document.png",
+        input_path="tests/test_files/QianFan_OCR/document.png",
         metadata={"page": 1},
     )
 
@@ -35,13 +35,40 @@ def test_call_dispatches_to_run_for_single_image(monkeypatch: pytest.MonkeyPatch
     assert "run" in called
     assert called["run"]["kwargs"]["task_type"] == TaskType.DOCUMENT_PARSING
     assert (
-        called["run"]["kwargs"]["image_path"]
+        called["run"]["kwargs"]["input_path"]
         == "tests/test_files/QianFan_OCR/document.png"
     )
     assert called["run"]["kwargs"]["metadata"] == {"page": 1}
 
 
-def test_call_dispatches_to_run_batch_for_multiple_images(
+def test_call_dispatches_single_pdf_to_run_batch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    app = RapidVLMOCR(engine=EngineType.MOCK)
+    called = {}
+
+    def fake_run_batch(*args, **kwargs):
+        called["run_batch"] = {"args": args, "kwargs": kwargs}
+        return ["batch-result"]
+
+    monkeypatch.setattr(app, "run_batch", fake_run_batch)
+
+    result = app(
+        task_type=TaskType.DOCUMENT_PARSING,
+        input_path="tests/test_files/test.pdf",
+        metadata={"doc_id": 1},
+        batch_size=2,
+    )
+
+    assert result == ["batch-result"]
+    assert "run_batch" in called
+    assert called["run_batch"]["kwargs"]["task_type"] == TaskType.DOCUMENT_PARSING
+    assert called["run_batch"]["kwargs"]["input_paths"] == ["tests/test_files/test.pdf"]
+    assert called["run_batch"]["kwargs"]["metadata_list"] == [{"doc_id": 1}]
+    assert called["run_batch"]["kwargs"]["batch_size"] == 2
+
+
+def test_call_dispatches_to_run_batch_for_multiple_inputs(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     app = RapidVLMOCR(engine=EngineType.MOCK)
@@ -55,7 +82,7 @@ def test_call_dispatches_to_run_batch_for_multiple_images(
 
     result = app(
         task_type=TaskType.TEXT_EXTRACTION,
-        image_path=["a.jpg", "b.jpg"],
+        input_path=["a.jpg", "b.jpg"],
         metadata={"page": 1},
         batch_size=2,
     )
@@ -63,21 +90,20 @@ def test_call_dispatches_to_run_batch_for_multiple_images(
     assert result == ["batch-result"]
     assert "run_batch" in called
     assert called["run_batch"]["kwargs"]["task_type"] == TaskType.TEXT_EXTRACTION
-    assert called["run_batch"]["kwargs"]["image_paths"] == ["a.jpg", "b.jpg"]
+    assert called["run_batch"]["kwargs"]["input_paths"] == ["a.jpg", "b.jpg"]
     assert called["run_batch"]["kwargs"]["metadata_list"] == [{"page": 1}, {"page": 1}]
     assert called["run_batch"]["kwargs"]["batch_size"] == 2
 
 
-def test_call_raises_for_list_metadata_with_single_image() -> None:
+def test_call_raises_for_list_metadata_with_single_input() -> None:
     app = RapidVLMOCR(engine=EngineType.MOCK)
 
     with pytest.raises(
         ValueError,
-        match="metadata must be a single dict when image_path is a single item",
+        match="metadata must be a single dict when input_path is a single item",
     ):
         app(
             task_type=TaskType.TEXT_EXTRACTION,
-            image_path="a.jpg",
+            input_path="a.jpg",
             metadata=[{"page": 1}],
         )
-

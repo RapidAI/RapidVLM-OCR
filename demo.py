@@ -15,6 +15,7 @@ img_paths = [
     "tests/test_files/QianFan_OCR/general.jpg",
     "tests/test_files/QianFan_OCR/document.png",
 ]
-result = app(task_type=TaskType.DOCUMENT_PARSING, image_path=img_paths, batch_size=2)
+input_path = "tests/test_files/test.pdf"
+result = app(task_type=TaskType.DOCUMENT_PARSING, input_path=input_path, batch_size=2)
 
 print(result)
